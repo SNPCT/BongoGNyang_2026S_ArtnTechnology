@@ -1,0 +1,21 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    overflow: hidden;
+    
+    /* 텍스트나 캔버스가 드래그 중에 파랗게 선택되는 것 방지 */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+canvas {
+    display: block;
+    /* 브라우저 기본 이미지 끌기 동작 방지 */
+    -webkit-user-drag: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
