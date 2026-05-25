@@ -16,20 +16,21 @@
     "electron": "^29.0.0",
     "electron-builder": "^24.13.3"
   },
+  "mac": {
+      "target": "dmg",
+      "category": "public.app-category.entertainment",
+      "icon": "build/icon.png"
+    },
   "build": {
     "appId": "com.bongognyang.mac",
     "productName": "BongoGNyang",
     "mac": {
       "target": "dmg",
-      "category": "public.app-category.entertainment"
+      "category": "public.app-category.entertainment",
+      "icon": "build/icon.png"
     },
     "directories": {
       "output": "dist"
-    },
-    "files": [
-      "**/*",
-      "!node_modules/**/*",
-      "node_modules/node-global-key-listener/**/*"
-    ]
+    }
   }
 }
