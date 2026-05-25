@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings</title>
+    <style>
+        body { margin: 0; padding: 0; background: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-user-select: none; overflow: hidden; }
+        .mac-settings { width: 100%; box-sizing: border-box; background: rgba(240, 240, 243, 0.95); border: 1px solid rgba(0, 0, 0, 0.15); border-radius: 12px; display: flex; flex-direction: column; color: #333; transition: height 0.3s ease; }
+        .mac-header { background: #e9e9ed; padding: 10px; display: flex; align-items: center; border-bottom: 1px solid #d1d1d6; border-radius: 12px 12px 0 0; -webkit-app-region: drag; }
+        .mac-dots { display: flex; gap: 7px; position: absolute; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.red { background: #ff5f56; cursor: pointer; -webkit-app-region: no-drag; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+        .mac-title { width: 100%; text-align: center; font-size: 13px; font-weight: 600; color: #555; }
+        
+        .mac-body { padding: 10px 16px 4px 16px; display: flex; flex-direction: column; gap: 6px; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .border-top { border-top: 1px solid #d1d1d6; padding-top: 10px; margin-top: 2px; }
+        select { background: #fff; border: 1px solid #c3c3c6; border-radius: 5px; padding: 3px 8px; font-size: 12px; outline: none; min-width: 110px; }
+        input[type="text"] { background: #fff; border: 1px solid #c3c3c6; border-radius: 5px; padding: 3px 6px; font-size: 12px; outline: none; text-align: center; width: 65px; }
+        input[type="text"]:disabled { background: #e9e9ed; color: #8e8e93; border-color: #d1d1d6; }
+        
+        .radio-group { display: flex; flex-direction: column; gap: 4px; }
+        .custom-radio { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .custom-radio input { display: none; }
+        .radio-dot { width: 14px; height: 14px; border: 1px solid #c3c3c6; border-radius: 50%; background: #fff; display: inline-block; position: relative; }
+        .custom-radio input:checked + .radio-dot { background: #007aff; border-color: #0045b5; }
+        .custom-radio input:checked + .radio-dot::after { content: ''; width: 6px; height: 6px; background: #fff; border-radius: 50%; position: absolute; top: 4px; left: 4px; }
+        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+        .switch input { display: none; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e9e9ed; border: 1px solid #d1d1d6; transition: .2s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 1px; bottom: 1px; background-color: white; transition: .2s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #34c759; border-color: #24b34b; }
+        input:checked + .slider:before { transform: translateX(16px); }
+        
+        .btn { border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-blue { background: #007aff; color: white; }
+        .btn-grey { background: #8e8e93; color: white; }
+        .btn-black { background: #000000; color: white; }
+        
+        .mac-footer { font-size: 11px; color: #8e8e93; text-align: center; border-top: 1px solid #d1d1d6; padding: 12px 16px 25px 16px; background: rgba(235, 235, 238, 0.4); border-radius: 0 0 12px 12px; flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+    </style>
+</head>
+<body>
+    <div class="mac-settings">
+        <div class="mac-header">
+            <div class="mac-dots"><div class="dot red" id="closeSettings"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+            <div class="mac-title">Settings</div>
+        </div>
+        
+        <div class="mac-body">
+            <div class="setting-item"><label>Frame Scale</label><select id="frameScaleSelect"><option value="100">100 x 100</option><option value="150">150 x 150</option><option value="200">200 x 200</option><option value="250" selected>250 x 250</option><option value="300">300 x 300</option><option value="400">400 x 400</option><option value="500">500 x 500</option></select></div>
+            <div class="setting-item">
+                <label>Color Mode</label>
+                <select id="colorModeSelect"><option value="0">White</option><option value="1">Matcha</option><option value="2">Cheese</option><option value="3">Olive</option></select>
+            </div>
+            <div class="setting-item"><label>Direction Mode</label><select id="directionSelect"><option value="left">Left</option><option value="right">Right</option></select></div>
+            
+            <div class="setting-item border-top">
+                <label>Clock</label>
+                <select id="clockMenuSelect">
+                    <option value="off" selected>Off</option>
+                    <option value="system">System Time</option>
+                    <option value="alarm">Alarm (TBD)</option>
+                    <option value="stopwatch">Stopwatch</option>
+                    <option value="timer">Timer</option>
+                </select>
+            </div>
+            
+            <div id="systemTimeSection" style="display: none; flex-direction: column; gap: 6px;">
+                <div class="setting-item">
+                    <label style="padding-left: 10px; font-size: 12px;">└ Color</label>
+                    <select id="systemColorSelect">
+                        <option value="0">White</option><option value="1">Matcha</option><option value="2">Cheese</option>
+                        <option value="3">Strawberry</option><option value="4">Klarheit</option><option value="5">Olive</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label style="padding-left: 10px; font-size: 12px;">└ 24h Mode</label>
+                    <label class="switch"><input type="checkbox" id="system24hSwitch" checked><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div id="stopwatchSection" style="display: none; flex-direction: column; gap: 6px;">
+                <div class="setting-item">
+                    <label style="padding-left: 10px; font-size: 12px;">└ Color</label>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <select id="swColorSelect">
+                            <option value="0">White</option><option value="1">Matcha</option><option value="2">Cheese</option>
+                            <option value="3">Strawberry</option><option value="4">Klarheit</option><option value="5">Olive</option>
+                        </select>
+                        <button id="swStartBtn" class="btn btn-blue">Start</button>
+                        <button id="swResumeBtn" class="btn btn-blue" style="display: none;">Resume</button>
+                        <button id="swStopBtn" class="btn btn-black" style="display: none;">Stop</button>
+                        <button id="swResetBtn" class="btn btn-grey" style="display: none;">Reset</button>
+                    </div>
+                </div>
+                <div style="padding-left: 10px; font-size: 10px; color: #8e8e93; line-height: 1.2;">* Click the stopwatch area to pause/resume.</div>
+            </div>
+
+            <div id="timerSection" style="display: none; flex-direction: column; gap: 6px;">
+                <div class="setting-item">
+                    <label style="padding-left: 10px; font-size: 12px;">└ Time</label>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <input type="text" id="timerInput" value="00:25:00" placeholder="HH:MM:SS">
+                        <button id="timerStartBtn" class="btn btn-blue">Start</button>
+                        <button id="timerPauseBtn" class="btn btn-grey" style="display: none;">Pause</button>
+                        <button id="timerStopBtn" class="btn btn-black" style="display: none;">Stop</button>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label style="padding-left: 10px; font-size: 12px;">└ Color</label>
+                    <select id="timerColorSelect">
+                        <option value="0">White</option><option value="1">Matcha</option><option value="2">Cheese</option>
+                        <option value="3">Strawberry</option><option value="4">Klarheit</option><option value="5">Olive</option>
+                    </select>
+                </div>
+                <div style="padding-left: 10px; font-size: 10px; color: #8e8e93; line-height: 1.2;">* Click the timer area to dismiss when time's up.</div>
+            </div>
+
+            <div class="setting-item border-top">
+                <label>Accessory</label>
+                <div class="radio-group">
+                    <label class="custom-radio"><input type="checkbox" id="sunglassesCheck"><span class="radio-dot"></span> Sunglasses</label>
+                    <label class="custom-radio"><input type="checkbox" id="headphonesCheck"><span class="radio-dot"></span> Headphones</label>
+                </div>
+            </div>
+            <div class="setting-item"><label>Eye blink</label><label class="switch"><input type="checkbox" id="eyeBlinkSwitch" checked><span class="slider"></span></label></div>
+            <div class="setting-item"><label>Media Equalizer</label><label class="switch"><input type="checkbox" id="equalizerSwitch"><span class="slider"></span></label></div>
+            <div class="setting-item"><label>Now Playing</label><label class="switch"><input type="checkbox" id="nowPlayingSwitch" checked><span class="slider"></span></label></div>
+        </div>
+            
+        <div class="mac-footer">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                <div style="text-align: left; line-height: 1.4; font-size: 10.5px;">Art&Technology 2026 Spring BongoGNyang<br>H. Jang CHEM, J. Kwon EECS<br>Advisor: Prof. Eunsung Song</div>
+                <button id="quitBtn" style="color: #ff5f56; background: none; border: 1px solid #ff5f56; border-radius: 4px; cursor: pointer; padding: 4px 8px; font-size: 11px; font-weight: bold;">QUIT</button>
+            </div>
+            <div style="border-top: 1px solid rgba(0,0,0,0.1); padding-top: 8px; text-align: left; font-size: 6px; color: #8e8e93; line-height: 1.1; word-break: keep-all;">
+                <div style="margin-bottom: 2px;">自家製 Rounded M+ は、M+ OUTLINE FONTS を、その自由なライセンス (M+ FONTS LICENSE) に基づき改変したもので、同一のライセンスによって提供されます。したがって、商用や再配布、ソフトウェアへの組み込み、改変などに関わらず、いかなる用途においても無償で自由に使用することができます。 SILオープンフォントライセンスの下で配布され、商用利用もできます。</div>
+                <div style="margin-bottom: 2px;">当フォントはZen角ゴシック、Zen丸ゴシックの派生フォントです。</div>
+                <div>전용서체 티머니 둥근바람(Tmoney RoundWind)のすべての知的財産権を含むすべての権利は(株)ティーマネーにあります。個人および企業ユーザーを含むすべてのユーザーに無料で提供します。</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        document.getElementById('closeSettings').onclick = () => ipcRenderer.send('close-settings');
+        document.getElementById('quitBtn').onclick = () => ipcRenderer.send('quit-app');
+
+        const resizeObserver = new ResizeObserver(() => { ipcRenderer.send('resize-settings', document.body.scrollHeight); });
+        resizeObserver.observe(document.body);
+
+        const els = {
+            scale: document.getElementById('frameScaleSelect'), mode: document.getElementById('colorModeSelect'),
+            dir: document.getElementById('directionSelect'), sg: document.getElementById('sunglassesCheck'),
+            hp: document.getElementById('headphonesCheck'), eb: document.getElementById('eyeBlinkSwitch'), 
+            eq: document.getElementById('equalizerSwitch'), np: document.getElementById('nowPlayingSwitch'),
+            clockMenu: document.getElementById('clockMenuSelect'), 
+            systemSection: document.getElementById('systemTimeSection'), sColor: document.getElementById('systemColorSelect'), s24h: document.getElementById('system24hSwitch'),
+            timerSection: document.getElementById('timerSection'), tInput: document.getElementById('timerInput'), 
+            tStart: document.getElementById('timerStartBtn'), tPause: document.getElementById('timerPauseBtn'), 
+            tStop: document.getElementById('timerStopBtn'), tColor: document.getElementById('timerColorSelect'),
+            swSection: document.getElementById('stopwatchSection'), swColor: document.getElementById('swColorSelect'),
+            swStart: document.getElementById('swStartBtn'), swResume: document.getElementById('swResumeBtn'),
+            swStop: document.getElementById('swStopBtn'), swReset: document.getElementById('swResetBtn')
+        };
+
+        let userSetTimeStr = "00:25:00"; 
+
+        function formatSeconds(secs) {
+            let h = Math.floor(secs / 3600); let m = Math.floor((secs % 3600) / 60); let s = secs % 60;
+            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+        function parseTimeStr(str) {
+            let parts = str.split(':').map(Number);
+            if (parts.length !== 3 || parts.some(isNaN)) return 1500;
+            let h = Math.min(parts[0], 99), m = Math.min(parts[1], 59), s = Math.min(parts[2], 59);
+            return h * 3600 + m * 60 + s;
+        }
+
+        els.clockMenu.onchange = (e) => {
+            const val = e.target.value;
+            els.timerSection.style.display = (val === 'timer') ? 'flex' : 'none';
+            els.systemSection.style.display = (val === 'system') ? 'flex' : 'none';
+            els.swSection.style.display = (val === 'stopwatch') ? 'flex' : 'none';
+            
+            ipcRenderer.send('setting-changed', { key: 'clockMode', val: val });
+            if (val !== 'timer') ipcRenderer.send('setting-changed', { key: 'timer-command', action: 'clear' });
+            if (val !== 'stopwatch') ipcRenderer.send('setting-changed', { key: 'stopwatch-command', action: 'clear' });
+        };
+
+        // System Time 제어
+        els.sColor.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'systemColor', val: parseInt(e.target.value) });
+        els.s24h.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'system24h', val: e.target.checked });
+
+        // 타이머 제어
+        els.tColor.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'timerColor', val: parseInt(e.target.value) });
+        els.tStart.onclick = () => {
+            userSetTimeStr = els.tInput.value;
+            let totalSecs = parseTimeStr(userSetTimeStr);
+            els.tInput.value = formatSeconds(totalSecs);
+            ipcRenderer.send('setting-changed', { key: 'timer-command', action: 'start', duration: totalSecs, color: parseInt(els.tColor.value) });
+            ipcRenderer.send('close-settings');
+        };
+        els.tPause.onclick = () => {
+            if (els.tPause.innerText === "Pause") ipcRenderer.send('setting-changed', { key: 'timer-command', action: 'pause' });
+            else ipcRenderer.send('setting-changed', { key: 'timer-command', action: 'resume' });
+        };
+        els.tStop.onclick = () => {
+            ipcRenderer.send('setting-changed', { key: 'timer-command', action: 'stop' });
+            els.tInput.value = userSetTimeStr; 
+        };
+        els.tInput.addEventListener('blur', () => { els.tInput.value = formatSeconds(parseTimeStr(els.tInput.value)); });
+
+        // 스톱워치 제어
+        els.swColor.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'stopwatchColor', val: parseInt(e.target.value) });
+        els.swStart.onclick = () => {
+            ipcRenderer.send('setting-changed', { key: 'stopwatch-command', action: 'start', color: parseInt(els.swColor.value) });
+            ipcRenderer.send('close-settings');
+        };
+        els.swStop.onclick = () => { ipcRenderer.send('setting-changed', { key: 'stopwatch-command', action: 'pause' }); };
+        els.swResume.onclick = () => { ipcRenderer.send('setting-changed', { key: 'stopwatch-command', action: 'resume' }); };
+        els.swReset.onclick = () => { ipcRenderer.send('setting-changed', { key: 'stopwatch-command', action: 'reset' }); };
+
+        // 기본 설정 리스너들
+        els.scale.onchange = (e) => ipcRenderer.send('resize-window', parseInt(e.target.value));
+        els.mode.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'mode', val: parseInt(e.target.value) });
+        els.dir.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'isFlipped', val: e.target.value === 'right' });
+        els.sg.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'isSunglassesOn', val: e.target.checked });
+        els.hp.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'isHeadphoneOn', val: e.target.checked });
+        els.eb.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'isEyeBlinkOn', val: e.target.checked });
+        els.np.onchange = (e) => ipcRenderer.send('setting-changed', { key: 'isNowPlayingOn', val: e.target.checked });
+
+        ipcRenderer.on('sync-ui', (e, data) => {
+            if (data.key === 'timer-sync') {
+                if (data.state === 'running' || data.state === 'paused' || data.state === 'blinking') {
+                    els.tInput.disabled = true;
+                    if (data.state !== 'blinking') els.tInput.value = formatSeconds(data.remaining);
+                    els.tStart.style.display = 'none'; els.tStop.style.display = 'block';
+                    if (data.state === 'blinking') els.tPause.style.display = 'none';
+                    else { els.tPause.style.display = 'block'; els.tPause.innerText = (data.state === 'paused') ? 'Resume' : 'Pause'; }
+                } else if (data.state === 'idle') {
+                    els.tInput.disabled = false;
+                    if (document.activeElement !== els.tInput) els.tInput.value = userSetTimeStr; 
+                    els.tStart.style.display = 'block'; els.tStop.style.display = 'none'; els.tPause.style.display = 'none';
+                }
+            } else if (data.key === 'stopwatch-sync') {
+                if (data.state === 'running') {
+                    els.swStart.style.display = 'none'; els.swResume.style.display = 'none'; els.swReset.style.display = 'none';
+                    els.swStop.style.display = 'block';
+                } else if (data.state === 'paused') {
+                    els.swStart.style.display = 'none'; els.swStop.style.display = 'none';
+                    els.swResume.style.display = 'block'; els.swReset.style.display = 'block';
+                } else if (data.state === 'idle') {
+                    els.swStart.style.display = 'block';
+                    els.swStop.style.display = 'none'; els.swResume.style.display = 'none'; els.swReset.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

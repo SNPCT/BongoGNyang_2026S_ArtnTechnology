@@ -1,0 +1,179 @@
+@font-face { font-family: 'CorporateLogo'; src: url('./fonts/Corporate-Logo-Rounded-Bold-ver3.otf'); }
+@font-face { font-family: 'Tmoney'; src: url('./fonts/TmoneyRoundWindExtraBold.ttf'); }
+@font-face { font-family: 'Mplus'; src: url('./fonts/rounded-x-mplus-2p-bold.ttf'); }
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+canvas {
+    display: block;
+    -webkit-user-drag: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    /* 👉 [수정됨] 창 크기에 맞춰 캔버스 그림이 찌그러지거나 줄어들도록 100% 꽉 채움 */
+    width: 100%;  
+    height: 100%; 
+}
+
+.mac-settings {
+    position: absolute;
+    /* 👉 [수정됨] 설정창이 항상 창의 한가운데 오도록 변경 (창 크기가 작아져도 잘리지 않게 하기 위함) */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+    width: 320px;
+    background: rgba(240, 240, 243, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #333;
+    z-index: 9999; 
+    overflow: hidden;
+}
+
+/* 상단 타이틀 바 */
+.mac-header {
+    background: #e9e9ed;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #d1d1d6;
+}
+.mac-dots {
+    display: flex;
+    gap: 7px;
+    position: absolute;
+}
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+.dot.red { background: #ff5f56; cursor: pointer; }
+.dot.yellow { background: #ffbd2e; }
+.dot.green { background: #27c93f; }
+.mac-title {
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+}
+
+/* 내부 레이아웃 */
+.mac-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+.border-top {
+    border-top: 1px solid #d1d1d6;
+    padding-top: 12px;
+}
+
+select {
+    background: #fff;
+    border: 1px solid #c3c3c6;
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 12px;
+    outline: none;
+    min-width: 110px;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.custom-radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+.custom-radio input {
+    display: none;
+}
+.radio-dot {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #c3c3c6;
+    border-radius: 50%;
+    background: #fff;
+    display: inline-block;
+    position: relative;
+}
+.custom-radio input:checked + .radio-dot {
+    background: #007aff;
+    border-color: #0045b5;
+}
+.custom-radio input:checked + .radio-dot::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+.switch input { display: none; }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #e9e9ed;
+    border: 1px solid #d1d1d6;
+    transition: .2s;
+    border-radius: 20px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 1px;
+    bottom: 1px;
+    background-color: white;
+    transition: .2s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+input:checked + .slider { background-color: #34c759; border-color: #24b34b; }
+input:checked + .slider:before { transform: translateX(16px); }
+
+.mac-footer {
+    font-size: 11px;
+    color: #8e8e93;
+    text-align: center;
+    margin-top: 10px;
+    border-top: 1px solid #d1d1d6;
+    padding-top: 10px;
+}
