@@ -1,15 +1,36 @@
-const util = require('util');
-if (!util.isObject) { util.isObject = function(obj) { return obj !== null && typeof obj === 'object'; }; }
-if (!util.isFunction) { util.isFunction = function(arg) { return typeof arg === 'function'; }; }
-if (!util.isString) { util.isString = function(arg) { return typeof arg === 'string'; }; }
+const { app, BrowserWindow, ipcMain, dialog, systemPreferences, screen } = require('electron');
+const { exec } = require('child_process');
+const { GlobalKeyboardListener } = require('node-global-key-listener');
 
-const { app, BrowserWindow, screen, ipcMain } = require('electron');
-const { GlobalKeyboardListener } = require("node-global-key-listener");
-const { exec } = require('child_process'); 
+// 👉 권한 확인 및 요청 로직 (macOS 전용 - 영어 버전)
+async function checkAndPromptMacPermissions() {
+    if (process.platform !== 'darwin') return;
+
+    const isAccessibilityGranted = systemPreferences.isTrustedAccessibilityClient(false);
+
+    if (!isAccessibilityGranted) { 
+        const { response } = await dialog.showMessageBox({
+            type: 'info',
+            title: 'Permission Request 🐾',
+            message: 'BongoGNyang needs your permission to work perfectly!',
+            detail: '1. [Accessibility] permission is required for the cat to react to your keyboard typing.\n2. [Automation] permission is required to display currently playing music.\n\nClick "OK" to open the system permission requests.',
+            buttons: ['OK', 'Later'],
+            defaultId: 0,
+            cancelId: 1
+        });
+
+        if (response === 0) {
+            systemPreferences.isTrustedAccessibilityClient(true);
+            exec(`osascript -e 'tell application "Spotify" to get version'`, () => {});
+            exec(`osascript -e 'tell application "Music" to get version'`, () => {});
+        }
+    }
+}
 
 let win;
 let settingsWin;
 let nowPlayingInterval = null;
+let keyReleaseTimeout = null; // 1초 타이머를 저장할 변수
 
 function fetchNowPlaying() {
     const script = `
@@ -58,8 +79,25 @@ function createWindow() {
     keyboardListener.addListener(function (e, down) {
       if (!win.isDestroyed()) {
         const keyName = e.name.toLowerCase(); 
-        if (e.state === "DOWN") win.webContents.send('global-keydown', keyName);
-        else if (e.state === "UP") win.webContents.send('global-keyup', keyName);
+        
+        if (e.state === "DOWN") {
+            win.webContents.send('global-keydown', keyName);
+            
+            // 👉 [신규 로직] 이미 작동 중인 타이머가 있다면 취소하고 새로 시작
+            if (keyReleaseTimeout) clearTimeout(keyReleaseTimeout);
+            
+            // 1초(1000ms) 후에 자동으로 손을 떼는(lh0 상태로 돌아가는) 이벤트 전송
+            keyReleaseTimeout = setTimeout(() => {
+                if (!win.isDestroyed()) {
+                    win.webContents.send('global-keyup', keyName);
+                }
+            }, 1000);
+            
+        } else if (e.state === "UP") {
+            // 사용자가 1초가 되기 전에 직접 키를 뗐다면 즉시 상태 복구 및 타이머 취소
+            win.webContents.send('global-keyup', keyName);
+            if (keyReleaseTimeout) clearTimeout(keyReleaseTimeout);
+        }
       }
     });
 
@@ -67,17 +105,15 @@ function createWindow() {
     nowPlayingInterval = setInterval(fetchNowPlaying, 2000);
   });
 
-  // 👉 고도화된 스냅(Snap) 로직 변수들
+  // 스냅(Snap) 로직 변수들
   let winStartPosition = { x: 0, y: 0 };
   let mouseStartPosition = { x: 0, y: 0 };
-  let isSnapEnabled = true; // 현재 스냅 활성화 상태
-  let isCurrentlySnapped = false; // 방금 스냅이 발동했었는지 여부
+  let isSnapEnabled = true; 
+  let isCurrentlySnapped = false; 
 
   ipcMain.on('drag-start', (event, screenMousePos) => {
       winStartPosition = { x: win.getPosition()[0], y: win.getPosition()[1] };
       mouseStartPosition = screenMousePos;
-      
-      // 창을 새로 집어 들었을 때 스냅 기능 무조건 재활성화
       isSnapEnabled = true; 
       isCurrentlySnapped = false;
   });
@@ -89,55 +125,36 @@ function createWindow() {
       let targetX = parseInt(winStartPosition.x + deltaX, 10) || 0;
       let targetY = parseInt(winStartPosition.y + deltaY, 10) || 0;
 
-      // 현재 마우스가 있는 모니터 정보 가져오기
       const currentDisplay = screen.getDisplayNearestPoint({ x: screenMousePos.x, y: screenMousePos.y });
-      
-      // bounds: 모니터 전체 영역 (메뉴바, Dock 아래의 '진짜' 끝부분 포함)
-      // workArea: 안전 영역 (앱들이 겹치지 않게 보장된 영역)
       const bounds = currentDisplay.bounds;
       const workArea = currentDisplay.workArea; 
       
       const winSize = win.getSize();
       const snapMargin = 25; 
 
-      // 스냅 계산을 위해 임시로 저장할 변수
       let snappedX = targetX;
       let snappedY = targetY;
       let willSnap = false;
 
-      // 👉 스냅 로직 (화면의 '진짜' 끝 bounds와 안전영역 workArea를 모두 판단)
       if (isSnapEnabled) {
-          // 좌우 스냅 (안전영역 기준)
           if (targetX < workArea.x + snapMargin) {
-              snappedX = workArea.x;
-              willSnap = true;
+              snappedX = workArea.x; willSnap = true;
           } else if (targetX + winSize[0] > workArea.x + workArea.width - snapMargin) {
-              snappedX = workArea.x + workArea.width - winSize[0];
-              willSnap = true;
+              snappedX = workArea.x + workArea.width - winSize[0]; willSnap = true;
           }
 
-          // 상하 스냅 (Mac의 '진짜' 바닥을 위해 bounds.height 우선 사용)
-          // bounds를 쓰면 Dock 뒤쪽이나 스테이지 매니저 하단까지도 뚫고 진짜 바닥에 붙을 수 있습니다.
           if (targetY < bounds.y + snapMargin) {
-              snappedY = bounds.y; // 천장
-              willSnap = true;
+              snappedY = bounds.y; willSnap = true;
           } else if (targetY + winSize[1] > bounds.y + bounds.height - snapMargin) {
-              snappedY = bounds.y + bounds.height - winSize[1]; // 진짜 바닥
-              willSnap = true;
+              snappedY = bounds.y + bounds.height - winSize[1]; willSnap = true;
           }
       }
 
-      // 👉 "붙였다 떼면 스냅 무시" 로직
       if (willSnap) {
-          // 스냅 조건에 들어왔으므로 위치 고정
           win.setPosition(snappedX, snappedY);
           isCurrentlySnapped = true;
       } else {
-          // 스냅 영역 밖으로 나감
           win.setPosition(targetX, targetY);
-          
-          // 방금까지 스냅 상태였는데 마우스를 더 움직여서(드래그) 영역을 벗어났다면?
-          // -> 사용자가 의도적으로 '떼어냈다'고 판단하여 이번 드래그 동안은 스냅 비활성화!
           if (isCurrentlySnapped) {
               isSnapEnabled = false;
               isCurrentlySnapped = false;
@@ -167,5 +184,11 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(createWindow);
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.whenReady().then(async () => {
+    await checkAndPromptMacPermissions(); 
+    createWindow(); 
+    
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+});

@@ -1,13 +1,13 @@
 {
   "name": "bongognyangformac",
-  "version": "1.2.0",
-  "description": "BongoGNyang Desktop Mascot for ArtnTechnology Class",
+  "version": "1.2.7",
+  "description": "BongoGNyang Desktop Mascot",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
   },
-  "author": "H. Jang and J. Kwon",
+  "author": "Art&Technology 2026 Spring BongoGNyang",
   "license": "ISC",
   "dependencies": {
     "node-global-key-listener": "^0.1.1"
@@ -16,21 +16,20 @@
     "electron": "^29.0.0",
     "electron-builder": "^24.13.3"
   },
-  "mac": {
-      "target": "dmg",
-      "category": "public.app-category.entertainment",
-      "icon": "build/icon.png"
-    },
   "build": {
     "appId": "com.bongognyang.mac",
     "productName": "BongoGNyang",
     "mac": {
       "target": "dmg",
       "category": "public.app-category.entertainment",
-      "icon": "build/icon.png"
+      "icon": "build/icon.png",
+      "hardenedRuntime": false
     },
     "directories": {
       "output": "dist"
-    }
+    },
+    "asarUnpack": [
+      "**/node_modules/**/*"
+    ]
   }
 }
