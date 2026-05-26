@@ -1,0 +1,4 @@
+- Added an English permission request dialog on startup (Accessibility & Automation).
+- Implemented a 1-second keyboard auto-release timeout logic.
+- The global keyboard hooking works perfectly in the development environment (Use terminal as `npm start` with VS Code, etc.).
+- Contributions and ideas to fix this DMG build issue are highly welcome!
