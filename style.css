@@ -20,14 +20,12 @@ canvas {
     top: 0;
     left: 0;
     z-index: 1;
-    /* 👉 [수정됨] 창 크기에 맞춰 캔버스 그림이 찌그러지거나 줄어들도록 100% 꽉 채움 */
     width: 100%;  
     height: 100%; 
 }
 
 .mac-settings {
     position: absolute;
-    /* 👉 [수정됨] 설정창이 항상 창의 한가운데 오도록 변경 (창 크기가 작아져도 잘리지 않게 하기 위함) */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
