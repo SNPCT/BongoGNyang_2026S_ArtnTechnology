@@ -29,11 +29,12 @@ const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
 
 let isNowPlayingOn = true; let currentNowPlayingData = ""; const appStartTime = Date.now(); 
 
-// 👉 시계/타이머/스톱워치 전역 상태
+//시스템 시간
 let clockMode = 'off'; // off, system, timer, stopwatch
 let systemColor = 0;
 let system24h = true;
 
+//타이머 설정
 let timerState = 'idle'; // idle, running, paused, blinking
 let timerColor = 0;
 let timerTargetMs = 0;
@@ -41,6 +42,7 @@ let timerPausedRemaining = 0;
 let timerRemainingSecs = 0;
 let blinkStartTime = 0;
 
+// 스톱워치
 let stopwatchState = 'idle'; // idle, running, paused
 let stopwatchColor = 0;
 let stopwatchStartMs = 0;
@@ -53,6 +55,7 @@ function loadAllImages() {
     })));
 }
 
+// 폰트  (Tmoney 한글, Mplus 기본)
 const customFonts = [
     new FontFace('CorporateLogo', "url('./fonts/Corporate-Logo-Rounded-Bold-ver3.otf')"),
     new FontFace('Tmoney', "url('./fonts/TmoneyRoundWindExtraBold.ttf')"),
@@ -82,6 +85,7 @@ setInterval(() => {
     }
 }, 500);
 
+// 눈깜빡임 로직 
 function scheduleNextBlink() {
     if (blinkTimeout) clearTimeout(blinkTimeout);
     if (!isEyeBlinkOn) { if (isBlinking) { isBlinking = false; render(); } return; }
@@ -92,6 +96,7 @@ function scheduleNextBlink() {
     }, delay);
 }
 
+// 마우스 움직임 로직
 ipcRenderer.on('mouse-x', (e, x) => { if (prevMouseX === null) { prevMouseX = x; return; }
     const dx = x - prevMouseX; let ns = handState;
     if (dx > 20) ns = 'right'; else if (dx < -20) ns = 'left'; else ns = 'middle';
@@ -100,6 +105,7 @@ ipcRenderer.on('global-keydown', (e, k) => { if (k==='space') k=' '; pressedKeys
 ipcRenderer.on('global-keyup', (e, k) => { if (k==='space') k=' '; pressedKeys.delete(k); updateLeftHandState(); });
 ipcRenderer.on('now-playing-data', (e, text) => { if (currentNowPlayingData !== text) { currentNowPlayingData = text; render(); } });
 
+// 키보드 타이핑 그룹 (4분면으로 구분)
 function getLeftHandGroup(key) {
     if (['1','2','3','4','5','6','q','w','e','r','t','y'].includes(key)) return 1;
     if (['7','8','9','0','minus','equals','u','i','o','p'].includes(key)) return 2;
@@ -168,14 +174,13 @@ window.addEventListener('pointerup', (e) => {
         if (isFlipped) clickedX = canvas.width - clickedX; 
         const cp = { x: clickedX, y: clickedY };
         
-        // Timer 영역 클릭 제어
+        // 타이머 영역 설정 및 idle로 변경
         if (clockMode === 'timer' && timerState === 'blinking') {
             if (cp.x >= 127.3 && cp.x <= 407.7 && cp.y >= 24.0 && cp.y <= 69.2) {
                 timerState = 'idle'; ipcRenderer.send('sync-ui', { key: 'timer-sync', state: 'idle' }); render(); return; 
             }
         }
         
-        // 👉 [핵심 로직] Stopwatch 영역 클릭 시 일시정지/재개
         if (clockMode === 'stopwatch' && (stopwatchState === 'running' || stopwatchState === 'paused')) {
             if (cp.x >= 127.3 && cp.x <= 407.7 && cp.y >= 24.0 && cp.y <= 69.2) {
                 if (stopwatchState === 'running') {
