@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, systemPreferences, screen } = requi
 const { exec } = require('child_process');
 const { GlobalKeyboardListener } = require('node-global-key-listener');
 
-// 👉 권한 확인 및 요청 로직 (macOS 전용 - 영어 버전)
+// Permission Req.
 async function checkAndPromptMacPermissions() {
     if (process.platform !== 'darwin') return;
 
@@ -30,8 +30,9 @@ async function checkAndPromptMacPermissions() {
 let win;
 let settingsWin;
 let nowPlayingInterval = null;
-let keyReleaseTimeout = null; // 1초 타이머를 저장할 변수
+let keyReleaseTimeout = null;
 
+// Apple Music, Spotify Detection
 function fetchNowPlaying() {
     const script = `
       set nowPlaying to ""
