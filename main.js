@@ -30,28 +30,58 @@ async function checkAndPromptMacPermissions() {
 let win;
 let settingsWin;
 let nowPlayingInterval = null;
-let keyReleaseTimeout = null; // 1초 타이머를 저장할 변수
+let keyReleaseTimeout = null; 
+let currentWinMedia = "";
+
+if (process.platform === 'win32') {
+    try {
+        const { MediaManager } = require('windows-media-controller');
+        const mediaManager = new MediaManager();
+
+        mediaManager.on('newSession', (session) => {
+            session.on('mediaPropertiesChanged', (info) => {
+                if (info.title) {
+                    currentWinMedia = info.artist ? `${info.artist} - ${info.title}` : info.title;
+                }
+            });
+            session.on('playbackInfoChanged', (info) => {
+                if (info.controls.playbackStatus !== 4) { // 4 = Playing
+                    currentWinMedia = "";
+                }
+            });
+        });
+        mediaManager.start(); // 감지 시작!
+    } catch (e) {
+        console.error("Windows 미디어 컨트롤러를 불러올 수 없습니다:", e);
+    }
+}
 
 function fetchNowPlaying() {
-    const script = `
-      set nowPlaying to ""
-      if application "Spotify" is running then
-          tell application "Spotify"
-              if player state is playing then set nowPlaying to artist of current track & " - " & name of current track
-          end tell
-      end if
-      if nowPlaying is "" and application "Music" is running then
-          tell application "Music"
-              if player state is playing then set nowPlaying to artist of current track & " - " & name of current track
-          end tell
-      end if
-      return nowPlaying
-    `;
-    exec(`osascript -e '${script}'`, (err, stdout) => {
-        if (!err && win && !win.isDestroyed()) {
-            win.webContents.send('now-playing-data', stdout.trim());
+    if (process.platform === 'darwin') {
+        const script = `
+          set nowPlaying to ""
+          if application "Spotify" is running then
+              tell application "Spotify"
+                  if player state is playing then set nowPlaying to artist of current track & " - " & name of current track
+              end tell
+          end if
+          if nowPlaying is "" and application "Music" is running then
+              tell application "Music"
+                  if player state is playing then set nowPlaying to artist of current track & " - " & name of current track
+              end tell
+          end if
+          return nowPlaying
+        `;
+        exec(`osascript -e '${script}'`, (err, stdout) => {
+            if (!err && win && !win.isDestroyed()) {
+                win.webContents.send('now-playing-data', stdout.trim());
+            }
+        });
+    } else if (process.platform === 'win32') {
+        if (win && !win.isDestroyed()) {
+            win.webContents.send('now-playing-data', currentWinMedia);
         }
-    });
+    }
 }
 
 function createWindow() {
