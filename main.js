@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, systemPreferences, screen } = requi
 const { exec } = require('child_process');
 const { GlobalKeyboardListener } = require('node-global-key-listener');
 
-// 👉 권한 확인 및 요청 로직 (macOS 전용 - 영어 버전)
+// Permission Req.
 async function checkAndPromptMacPermissions() {
     if (process.platform !== 'darwin') return;
 
@@ -55,7 +55,9 @@ if (process.platform === 'win32') {
         console.error("Windows 미디어 컨트롤러를 불러올 수 없습니다:", e);
     }
 }
+let keyReleaseTimeout = null;
 
+// Apple Music, Spotify Detection
 function fetchNowPlaying() {
     if (process.platform === 'darwin') {
         const script = `
