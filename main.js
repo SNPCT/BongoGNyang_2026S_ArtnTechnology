@@ -11,7 +11,7 @@ async function checkAndPromptMacPermissions() {
     if (!isAccessibilityGranted) { 
         const { response } = await dialog.showMessageBox({
             type: 'info',
-            title: 'Permission Request 🐾',
+            title: 'Permission Request',
             message: 'BongoGNyang needs your permission to work perfectly!',
             detail: '1. [Accessibility] permission is required for the cat to react to your keyboard typing.\n2. [Automation] permission is required to display currently playing music.\n\nClick "OK" to open the system permission requests.',
             buttons: ['OK', 'Later'],
@@ -50,7 +50,7 @@ if (process.platform === 'win32') {
                 }
             });
         });
-        mediaManager.start(); // 감지 시작!
+        mediaManager.start();
     } catch (e) {
         console.error("Windows 미디어 컨트롤러를 불러올 수 없습니다:", e);
     }
